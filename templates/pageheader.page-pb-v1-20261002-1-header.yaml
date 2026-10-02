@@ -1,0 +1,10 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: PageHeader
+metadata:
+  name: page-pb-v1-20261002-1-header
+  namespace: '{{ include "page.tierNamespace" (dict "ctx" . "tier" "common") }}'
+spec:
+  resourcesRefs:
+    items: []
+  widgetData:
+    title: Pod sizing
