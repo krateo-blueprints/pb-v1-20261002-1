@@ -1,0 +1,23 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: PieChart
+metadata:
+  name: pb-v1-20261002-1-verdicts
+  namespace: krateo-system
+spec:
+  widgetDataTemplate:
+  - expression: ${ .byVerdict }
+    forPath: data
+  apiRef:
+    name: pb-v1-20261002-1-query
+    namespace: krateo-system
+  resourcesRefs:
+    items: []
+  widgetData:
+    angleField: count
+    colorField: verdict
+    colorMap:
+      Underprovisioned: red
+      Overprovisioned: orange
+      Right-sized: green
+      Unknown: gray
+    data: []

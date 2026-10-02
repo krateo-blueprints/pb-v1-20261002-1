@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: CHART_VERSION
+description: Krateo Composable Portal pages — pb-v1-20261002-1.
+name: pb-v1-20261002-1
+type: application
+version: CHART_VERSION

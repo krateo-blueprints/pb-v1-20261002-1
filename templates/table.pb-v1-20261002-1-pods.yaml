@@ -1,0 +1,29 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Table
+metadata:
+  name: pb-v1-20261002-1-pods
+  namespace: krateo-system
+spec:
+  widgetDataTemplate:
+  - expression: ${ .rows }
+    forPath: dataSource
+  apiRef:
+    name: pb-v1-20261002-1-query
+    namespace: krateo-system
+  resourcesRefs:
+    items: []
+  widgetData:
+    columns:
+      - title: Namespace
+        valueKey: namespace
+      - title: Pod
+        valueKey: pod
+      - title: CPU request
+        valueKey: request
+      - title: CPU used
+        valueKey: used
+      - title: Utilisation
+        valueKey: utilisation
+      - title: Verdict
+        valueKey: verdict
+    allowedResources: []
