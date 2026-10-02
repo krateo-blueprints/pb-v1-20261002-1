@@ -1,0 +1,35 @@
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: pb-v1-20261002-1-query
+  namespace: krateo-system
+spec:
+  api:
+    - headers:
+        - 'Accept: application/json'
+      name: pods
+      path: /api/v1/pods
+      verb: GET
+    - headers:
+        - 'Accept: application/json'
+      name: metrics
+      path: /apis/metrics.k8s.io/v1beta1/pods
+      verb: GET
+      dependsOn:
+        name: pods
+  filter: |-
+    include "quantity";
+    def cell(k; v): { valueKey: k, kind: "jsonSchemaType", type: "string", stringValue: v };
+    def mcpu: if . == null then "—" else "\(. * 1000 | round)m" end;
+    ([ .metrics.items[] | { key: "\(.metadata.namespace)/\(.metadata.name)", value: ([ .containers[].usage.cpu ] | sum_quantities) } ] | from_entries) as $used
+    | [ .pods.items[] | select(.status.phase == "Running" and .metadata.namespace != "kube-system" and (.metadata.namespace | startswith("gke-") | not))
+        | ([ .spec.containers[].resources.requests.cpu // empty ] | sum_quantities) as $req
+        | $used["\(.metadata.namespace)/\(.metadata.name)"] as $use
+        | utilization_pct($use; $req) as $pct
+        | { ns: .metadata.namespace, pod: .metadata.name, $req, $use, $pct, verdict: provisioning_verdict($pct) } ]
+    | sort_by([ -(.verdict | provisioning_severity), (if .verdict == "Overprovisioned" then .pct // 0 else -(.pct // 0) end) ]) as $pods
+    | { rows: [ $pods[] | [ cell("namespace"; .ns), cell("pod"; .pod), cell("request"; .req | mcpu), cell("used"; .use | mcpu),
+          cell("utilisation"; if .pct == null then "—" else "\(.pct)%" end),
+          { valueKey: "verdict", kind: "tag", stringValue: .verdict,
+            color: { Underprovisioned: "red", Overprovisioned: "orange", "Right-sized": "green", Unknown: "gray" }[.verdict] } ] ],
+        byVerdict: ($pods | group_by(.verdict) | map({ verdict: .[0].verdict, count: length })) }
